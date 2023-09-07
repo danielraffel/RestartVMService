@@ -12,9 +12,9 @@ exports.restartVM = async (req, res) => {
   // Check the Webhook response_state https://support.freshping.io/en/support/solutions/articles/50000003709-freshping-api-documentation#Check-Types
   const responseState = req.body.response_state;
 
-  // Validate secret and check if the response state is 'Reporting Error'
-  if ((req.headers['x-custom-secret'] !== secret && payloadSecret !== secret) || responseState !== 'Reporting Error') {
-    return res.status(403).send('Forbidden or Not Reporting Error');
+  // Validate secret and check if the response state is 'Reporting Error' or "Not Responding"
+  if ((req.headers['x-custom-secret'] !== secret && payloadSecret !== secret) || (responseState !== 'Reporting Error' && responseState !== 'Not Responding')) {
+    return res.status(403).send('Forbidden or Not Reporting Error/Not Responding');
   }
 
   // Authenticate with Google Cloud
