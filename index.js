@@ -3,17 +3,21 @@ const compute = google.compute('v1');
 
 exports.restartVM = async (req, res) => {
   // Log the request payload
- console.log("Request body:", req.body);
+  console.log("Request body:", req.body);
+  
   // Validate the secret header
   const secret = process.env.secret;
+  
   // Validate if the secret is in the body
   const payloadSecret = req.body.secret;
 
-  // Check the Webhook response_state https://support.freshping.io/en/support/solutions/articles/50000003709-freshping-api-documentation#Check-Types
-  const responseState = req.body.response_state;
+  // Get the response_state
+  const responseState = req.body.responseState;
+  
 
-  // Validate secret and check if the response state is 'Reporting Error' or "Not Responding"
-  if ((req.headers['x-custom-secret'] !== secret && payloadSecret !== secret) || (responseState !== 'Reporting Error' && responseState !== 'Not Responding')) {
+  // Validate secret and check if the response_state starts with 'Reporting Error' or is 'Not Responding'
+  if ((req.headers['x-custom-secret'] !== secret && payloadSecret !== secret) || 
+      (!responseState.startsWith('Reporting Error') && responseState !== 'Not Responding')) {
     return res.status(403).send('Forbidden or Not Reporting Error/Not Responding');
   }
 
@@ -96,4 +100,3 @@ exports.restartVM = async (req, res) => {
     res.status(404).send('No matching instance found');
   }
 };
-
