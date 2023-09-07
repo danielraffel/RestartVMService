@@ -6,7 +6,13 @@ This [Google Cloud Run](https://console.cloud.google.com/run) function is design
 
 * You are using Freshping to monitor your website. You can sign up for a free account here: https://www.freshworks.com/website-monitoring/pingdom-alternative/
 * You have set up a webhook integration with Freshping to notify your Google Cloud Run trigger URL when your site is up/down. The custom content payload should include the following key-value pair: "secret": "UNIQUE_PASSWORD"
-
+* Definitely not for use with anything highly sensitive
+* Grant your Cloud Function the ability to restart Compute Engine VMs in IAM section of the Google cloud console:
+1. **Find Service Account**: Locate the App Engine default service account, usually named `property-ID-number@appspot.gserviceaccount.com`.
+2. **Edit**: Click the pencil icon next to the service account.
+3. **Add Role**: Scroll and hit "Add Another Role."
+4. **Choose Role**: In the dropdown, go to "Compute Engine" and pick "Compute Instance Admin (v1)."
+5. **Save**: Scroll down, click "Save."
 
 ## Setup
 
