@@ -6,7 +6,7 @@ This [Google Cloud Run](https://console.cloud.google.com/run) function is design
 
 * You are using Freshping to monitor your website. You can sign up for a free account here: https://www.freshworks.com/website-monitoring/pingdom-alternative/
 * You have set up a webhook integration with Freshping to notify your Google Cloud Run trigger URL when your site is up/down. The custom content payload should include the following key-value pair: "secret": "UNIQUE_PASSWORD"
-* NOTE: This is definitely not for use with anything highly sensitive unless you secure it better
+* NOTE: This is definitely not for use with anything highly sensitive unless you take additional security measures
 
 ## Grant Your Service Account Cloud Function Execution Privs
 1. **Find Service Account**: In the IAM section of the console locate the App Engine default service account, usually named `property-ID-number@appspot.gserviceaccount.com`.
