@@ -1,6 +1,6 @@
 # RestartVMService
 
-This [Google Cloud Run](https://console.cloud.google.com/run) function is designed to be used with [gCloud-Ghost-Updater](https://github.com/danielraffel/gCloud-Ghost-Updater) to restart a Google Cloud VM when a ping service notices the (Ghost Blog) VM is not available.
+This [Google Cloud Run](https://console.cloud.google.com/run) function is designed to be used with [gCloud-Ghost-Updater](https://github.com/danielraffel/gCloud-Ghost-Updater) to restart a Google Cloud VM when [httpPing](https://github.com/danielraffel/httpPing) notices the (Ghost Blog) VM is not available.
 
 ## Assumptions
 
