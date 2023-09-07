@@ -2,6 +2,8 @@ const { google } = require('googleapis');
 const compute = google.compute('v1');
 
 exports.restartVM = async (req, res) => {
+  // Log the request payload
+ console.log("Request body:", req.body);
   // Validate the secret header
   const secret = process.env.secret;
   // Validate if the secret is in the body
