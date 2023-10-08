@@ -1,73 +1,64 @@
+// Import required modules
 const { google } = require('googleapis');
 const compute = google.compute('v1');
 
+// Define an async function to restart VMs based on specific conditions
 exports.restartVM = async (req, res) => {
-  // Log the request payload
+  
+  // Log the request body for debugging
   console.log("Request body:", req.body);
-  
-  // Validate the secret header
+
+  // Extract secrets and VM state from the environment and request body
   const secret = process.env.secret;
-  
-  // Validate if the secret is in the body
   const payloadSecret = req.body.secret;
-
-  // Get the response_state
   const responseState = req.body.responseState;
-  
 
-  // Validate secret and check if the response_state starts with 'Reporting Error' or is 'Not Responding'
+  // Check if the custom header or payload secret matches and verify VM state 
+  // (only allow certain error states)
   if ((req.headers['x-custom-secret'] !== secret && payloadSecret !== secret) || 
-      (!responseState.startsWith('Reporting Error') && responseState !== 'Not Responding')) {
-    return res.status(403).send('Forbidden or Not Reporting Error/Not Responding');
+      (!responseState.startsWith('Reporting Error') && responseState !== 'Not Responding' && responseState !== 'Request Timeout')) {
+    return res.status(403).send('Forbidden or Not Reporting Error/Not Responding/Request Timeout');
   }
 
-  // Authenticate with Google Cloud
+  // Authenticate with Google Cloud using required scopes
   const auth = await google.auth.getClient({
     scopes: ['https://www.googleapis.com/auth/cloud-platform']
   });
 
-  // The project to match 'gcloud config get-value project'
+  // Set project ID and target IP (should be replaced with actual values)
   const projectId = 'YOUR_PROJECT_ID';
-  // The External Static IP to match 'gcloud compute instances list'
   const targetIP = 'YOUR_STATIC_IP';
 
-  // Fetch the list of zones in the project
+  // Fetch all zones for the given project
   const zonesResponse = await compute.zones.list({ project: projectId, auth: auth });
   const zones = zonesResponse.data.items.map(zone => zone.name);
 
-  // Initialize variables to keep track of the instance to restart
+  // Variables to keep track of the instance to be restarted
   let maxInstanceNumber = -1;
   let instanceToRestart = null;
   let zoneToRestart = null;
 
-  // Loop through each zone to fetch instances
+  // Loop through all zones to find instances
   for (const zone of zones) {
     const instancesResponse = await compute.instances.list({ project: projectId, zone: zone, auth: auth });
-    const instances = instancesResponse.data.items;
+    const instances = instancesResponse.data.items || [];
 
-    // Loop through each instance to find the one to restart
-    if (instances && instances.length > 0) {
-      for (const instance of instances) {
-        // Extract instance name and external IP
-        const instanceName = instance.name;
-        const externalIP = instance.networkInterfaces[0]?.accessConfigs[0]?.natIP;
+    // Loop through instances to find the one with the maximum instance number and matching target IP
+    for (const instance of instances) {
+      const instanceName = instance.name;
+      const externalIP = instance.networkInterfaces?.[0]?.accessConfigs?.[0]?.natIP;
+      const instanceNumber = parseInt(instanceName.split('-').pop(), 10);
 
-        // Extract the last part of the instance name as a number
-        const instanceNumber = parseInt(instanceName.split('-').pop(), 10);
-
-        // Check if this instance has the highest number and matches the target IP
-        if (instanceNumber > maxInstanceNumber && externalIP === targetIP) {
-          maxInstanceNumber = instanceNumber;
-          instanceToRestart = instanceName;
-          zoneToRestart = zone;
-        }
+      if (instanceNumber > maxInstanceNumber && externalIP === targetIP) {
+        maxInstanceNumber = instanceNumber;
+        instanceToRestart = instanceName;
+        zoneToRestart = zone;
       }
     }
   }
 
-  // If an instance to restart is found, proceed
+  // If a matching instance is found, perform operations on it
   if (instanceToRestart) {
-    // Create the request payload
     const request = {
       project: projectId,
       zone: zoneToRestart,
@@ -76,27 +67,32 @@ exports.restartVM = async (req, res) => {
     };
 
     try {
-      // Fetch the current status of the instance
+      // Fetch the details of the instance to determine its current status
       const instanceDetails = await compute.instances.get(request);
-      const status = instanceDetails.data.status;
+      console.log("Instance details response:", JSON.stringify(instanceDetails));
 
-      let response;
-      // If the instance is running, reset it
-      if (status === 'RUNNING') {
-        response = await compute.instances.reset(request);
-      } 
-      // If the instance is terminated or stopped, start it
-      else if (status === 'TERMINATED' || status === 'STOPPED') {
-        response = await compute.instances.start(request);
+      if (!instanceDetails || !instanceDetails.data) {
+        return res.status(500).send('Failed to fetch instance details');
       }
 
-      console.log(`VM instance ${instanceToRestart} operation completed:`, response.data);
+      const status = instanceDetails.data.status;
+
+      // Based on the status of the instance, decide to either reset or start the instance
+      if (status === 'RUNNING') {
+        await compute.instances.reset(request);
+      } else if (status === 'TERMINATED' || status === 'STOPPED') {
+        await compute.instances.start(request);
+      }
+
+      console.log(`VM instance ${instanceToRestart} operation completed.`);
       res.status(200).send(`Operation completed on ${instanceToRestart}`);
     } catch (err) {
-      console.error(err);
+      // Log errors and send a 500 response in case of exceptions
+      console.error("Error:", err);
       res.status(500).send('Failed to perform operation on VM');
     }
   } else {
+    // If no matching instance is found, send a 404 response
     res.status(404).send('No matching instance found');
   }
 };
