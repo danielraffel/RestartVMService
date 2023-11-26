@@ -12,8 +12,11 @@ This [Google Cloud Run](https://console.cloud.google.com/run) function is design
 1. **Find Service Account**: In the IAM section of the console locate the App Engine default service account, usually named `property-ID-number@appspot.gserviceaccount.com`.
 2. **Edit**: Click the pencil icon next to the service account.
 3. **Add Role**: Scroll and hit "Add Another Role."
-4. **Choose Role**: In the dropdown, go to "Compute Engine" and pick "Compute Instance Admin (v1)."
-5. **Save**: Scroll down, click "Save."
+4. **Choose Role**: In the dropdown, go to "Compute Engine" and pick "Compute Instance Admin (v1)." This role allows the service account to manage Compute Engine instances across the Google Cloud project.
+5. **Add 2nd Role:** Click on “Add Another Role”.
+6. **Choose Role:** In the dropdown menu, select the “Cloud Functions” category and then choose the “Cloud Functions Invoker” role. This role allows the service account to invoke Cloud Functions.
+7. **Save**: Scroll down, click "Save."
+8. Run
 
 ## Setup
 
