@@ -20,7 +20,7 @@ This [Google Cloud Run](https://console.cloud.google.com/run) function is design
 
 ## Setup
 
-1. Create a Google Cloud Run v2 function named `RestartVMService`.
+1. Create a Google Cloud Run v2 function named `RestartVMService` set Authentication to use `HTTPS` and `Allow unauthenticated invocations`.
 2. Create a Runtime environment variable named `secret` and set its value to the UNIQUE_PASSWORD that you configured in httpping payload.
 3. Update the `index.js` file with the content in this repository. Make sure to update the `YOUR_PROJECT_ID` and `EXTERNAL_STATIC_IP` variables with your own values.
 4. Update the `package.js` file with the content in this repository.
